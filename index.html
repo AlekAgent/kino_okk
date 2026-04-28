@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KINO.OK — Смотри кино онлайн</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080e;
+      --surface: #10101a;
+      --surface2: #1a1a28;
+      --surface3: #252538;
+      --border: rgba(255,255,255,0.07);
+      --accent: #e50914;
+      --accent2: #ff2d3a;
+      --gold: #f5c518;
+      --text: #f0f0f8;
+      --muted: #7878a0;
+      --dim: #404060;
+      --r: 10px;
+      --r2: 18px;
+      --t: 0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 64px;
+      display: flex; align-items: center;
+      padding: 0 40px; gap: 32px;
+      z-index: 1000;
+      transition: background var(--t), box-shadow var(--t);
+    }
+    .navbar.scrolled {
+      background: rgba(8,8,14,0.96);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .logo {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 28px; letter-spacing: 3px;
+      cursor: pointer; flex-shrink: 0;
+      color: var(--text);
+    }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 4px; list-style: none; }
+    .nav-links li a {
+      color: var(--muted); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      padding: 6px 14px; border-radius: 6px;
+      cursor: pointer; transition: all var(--t);
+    }
+    .nav-links li a:hover { color: var(--text); background: var(--surface2); }
+    .nav-links li a.active { color: var(--text); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .nav-search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 24px; padding: 7px 16px;
+      width: 210px; transition: all var(--t);
+    }
+    .nav-search:focus-within {
+      border-color: rgba(229,9,20,0.4);
+      box-shadow: 0 0 0 3px rgba(229,9,20,0.08);
+      width: 260px;
+    }
+    .nav-search input {
+      background: none; border: none; outline: none;
+      color: var(--text); font-family: 'Outfit', sans-serif;
+      font-size: 13px; width: 100%;
+    }
+    .nav-search input::placeholder { color: var(--dim); }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--t); flex-shrink: 0;
+    }
+    .icon-btn:hover { background: var(--surface3); border-color: rgba(229,9,20,0.4); }
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 14px 6px 8px; border-radius: 24px;
+      border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer; transition: all var(--t); font-size: 13px;
+    }
+    .user-chip:hover { border-color: rgba(229,9,20,0.4); background: var(--surface2); }
+    .user-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--accent); display: flex;
+      align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative; height: 88vh; min-height: 560px;
+      display: flex; align-items: flex-end; padding-bottom: 80px;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center 20%;
+      transition: opacity 1.2s ease;
+    }
+    .hero-vignette {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(to right, rgba(8,8,14,0.92) 35%, rgba(8,8,14,0.2) 75%),
+        linear-gradient(to top, rgba(8,8,14,1) 0%, rgba(8,8,14,0.4) 35%, transparent 65%);
+    }
+    .hero-content {
+      position: relative; padding: 0 60px;
+      max-width: 620px; animation: fadeUp 0.8s ease;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent); color: #fff;
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; padding: 5px 12px; border-radius: 4px;
+      margin-bottom: 18px;
+    }
+    .hero-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      animation: pulse 1.4s ease infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+    .hero-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(44px, 6.5vw, 80px);
+      line-height: 0.95; letter-spacing: 2px;
+      margin-bottom: 16px;
+      text-shadow: 0 4px 30px rgba(0,0,0,0.7);
+    }
+    .hero-meta {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 16px; font-size: 13px; color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .hero-meta .rnk { color: var(--gold); font-weight: 700; font-size: 15px; }
+    .hero-meta .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--dim); }
+    .hero-desc {
+      font-size: 14px; line-height: 1.75;
+      color: rgba(240,240,248,0.72);
+      margin-bottom: 28px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .hero-btns { display: flex; gap: 12px; }
+    .btn-red {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 8px; padding: 12px 28px;
+      font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all var(--t);
+    }
+    .btn-red:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(229,9,20,0.45); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.1); color: #fff;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+      padding: 12px 28px; font-family: 'Outfit', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      backdrop-filter: blur(10px); transition: all var(--t);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
+
+    /* ===== ROWS ===== */
+    .section { padding: 0 40px 40px; }
+    .section-head {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 20px;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 22px; letter-spacing: 1.5px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .red-dot { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+    .see-all {
+      font-size: 12px; color: var(--muted); cursor: pointer;
+      transition: color var(--t); text-decoration: none;
+      padding: 4px 8px; border-radius: 4px;
+    }
+    .see-all:hover { color: var(--accent); }
+    .row-wrap { position: relative; }
+    .row-scroll {
+      display: flex; gap: 14px; overflow-x: auto;
+      padding-bottom: 10px; scroll-behavior: smooth;
+      scrollbar-width: none;
+    }
+    .row-scroll::-webkit-scrollbar { display: none; }
+    .row-arrow {
+      position: absolute; top: 50%; transform: translateY(-60%);
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(8,8,14,0.92); border: 1px solid var(--border);
+      color: #fff; cursor: pointer; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10; opacity: 0; pointer-events: none;
+      transition: all var(--t); backdrop-filter: blur(10px);
+    }
+    .row-wrap:hover .row-arrow { opacity: 1; pointer-events: auto; }
+    .row-arrow:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-60%) scale(1.1); }
+    .row-arrow.lft { left: -18px; }
+    .row-arrow.rgt { right: -18px; }
+
+    /* ===== CARD ===== */
+    .card {
+      flex-shrink: 0; width: 158px; cursor: pointer;
+      position: relative; transition: transform var(--t);
+    }
+    .card:hover { transform: scale(1.07) translateY(-5px); z-index: 5; }
+    .card-img {
+      width: 100%; aspect-ratio: 2/3;
+      border-radius: var(--r); overflow: hidden;
+      background: var(--surface2); position: relative;
+    }
+    .card-img img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; transition: filter var(--t);
+    }
+    .card:hover .card-img img { filter: brightness(0.55); }
+    .card-hover-layer {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(8,8,14,0.95) 0%, transparent 55%);
+      opacity: 0; transition: opacity var(--t);
+      border-radius: var(--r);
+      display: flex; flex-direction: column;
+      justify-content: flex-end; padding: 10px;
+    }
+    .card:hover .card-hover-layer { opacity: 1; }
+    .card-play-btn {
+      width: 42px; height: 42px; background: var(--accent); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px; font-size: 15px;
+      box-shadow: 0 4px 16px rgba(229,9,20,0.55);
+    }
+    .card-hover-rating { text-align: center; font-size: 12px; color: var(--gold); font-weight: 700; }
+    .heart-btn {
+      position: absolute; top: 7px; right: 7px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(8,8,14,0.75); border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: all var(--t);
+    }
+    .card:hover .heart-btn { opacity: 1; pointer-events: auto; }
+    .heart-btn.on { color: var(--accent); border-color: var(--accent); opacity: 1; pointer-events: auto; }
+    .heart-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .card-body { padding: 9px 2px 0; }
+    .card-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .card-sub { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+    .gold-star { color: var(--gold); }
+
+    /* ===== CATALOG ===== */
+    .page-wrap { padding: 96px 40px 60px; }
+    .page-title { font-family: 'Bebas Neue', cursive; font-size: 44px; letter-spacing: 2px; margin-bottom: 28px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .chip {
+      padding: 7px 18px; border-radius: 22px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--t);
+    }
+    .chip:hover { border-color: rgba(229,9,20,0.4); color: var(--text); }
+    .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+      gap: 22px;
+    }
+    .grid .card { width: 100%; }
+
+    /* ===== MOVIE DETAIL ===== */
+    .backdrop-wrap { position: relative; height: 68vh; min-height: 400px; overflow: hidden; }
+    .backdrop-img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; filter: brightness(0.35); }
+    .backdrop-fade { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 0%, rgba(8,8,14,0.4) 50%, transparent 100%); }
+    .movie-layout {
+      position: relative; margin-top: -200px;
+      padding: 0 60px 60px; display: flex; gap: 48px; align-items: flex-start;
+    }
+    .big-poster { width: 230px; flex-shrink: 0; border-radius: var(--r2); overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.75); }
+    .big-poster img { width: 100%; display: block; }
+    .movie-info-col { flex: 1; padding-top: 130px; }
+    .genre-pills { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+    .gpill { padding: 4px 12px; border-radius: 18px; border: 1px solid var(--border); font-size: 11px; color: var(--muted); background: var(--surface2); }
+    .movie-main-title { font-family: 'Bebas Neue', cursive; font-size: clamp(38px, 5.5vw, 68px); letter-spacing: 2px; line-height: 0.95; margin-bottom: 6px; }
+    .movie-orig { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+    .stats-row { display: flex; gap: 28px; margin-bottom: 22px; flex-wrap: wrap; }
+    .stat { display: flex; flex-direction: column; gap: 3px; }
+    .stat-lbl { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1.2px; }
+    .stat-val { font-size: 15px; font-weight: 600; }
+    .stat-val.gold { color: var(--gold); }
+    .movie-desc { font-size: 14px; line-height: 1.8; color: rgba(240,240,248,0.75); margin-bottom: 28px; max-width: 580px; }
+    .movie-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 44px; }
+    .trailer-section { padding: 0 60px 60px; }
+    .trailer-title { font-family: 'Bebas Neue', cursive; font-size: 22px; letter-spacing: 1.5px; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; }
+    .player-wrap { position: relative; padding-bottom: 56.25%; height: 0; border-radius: var(--r2); overflow: hidden; background: #000; box-shadow: 0 24px 70px rgba(0,0,0,0.75); max-width: 900px; }
+    .player-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+    .back-btn {
+      position: fixed; top: 78px; left: 32px; z-index: 100;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(8,8,14,0.8); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 16px; color: var(--text);
+      cursor: pointer; font-family: 'Outfit', sans-serif; font-size: 13px;
+      font-weight: 500; backdrop-filter: blur(10px); transition: all var(--t);
+    }
+    .back-btn:hover { border-color: rgba(229,9,20,0.4); background: var(--surface); }
+
+    /* ===== WATCH PAGE ===== */
+    .watch-page { min-height: 100vh; background: #000; display: flex; flex-direction: column; padding-top: 64px; }
+    .watch-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 64px;
+      background: rgba(0,0,0,0.95); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; padding: 0 32px; gap: 24px; z-index: 1000;
+    }
+    .watch-logo { font-family: 'Bebas Neue', cursive; font-size: 22px; letter-spacing: 2px; cursor: pointer; }
+    .watch-logo span { color: var(--accent); }
+    .watch-movie-title { font-family: 'Bebas Neue', cursive; font-size: 18px; letter-spacing: 1px; color: var(--muted); }
+    .watch-frame { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 40px 40px; }
+    .watch-player { width: 100%; max-width: 1200px; }
+    .watch-player-inner { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 32px 80px rgba(0,0,0,0.9); }
+    .watch-player-inner iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+    .watch-meta { width: 100%; max-width: 1200px; margin-top: 22px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+    .watch-info-title { font-family: 'Bebas Neue', cursive; font-size: 30px; letter-spacing: 1px; margin-bottom: 4px; }
+    .watch-info-sub { font-size: 13px; color: var(--muted); }
+    .watch-actions { display: flex; gap: 10px; }
+
+    /* ===== SEARCH PAGE ===== */
+    .search-hero-area { text-align: center; margin-bottom: 48px; padding-top: 20px; }
+    .search-hero-title { font-family: 'Bebas Neue', cursive; font-size: 52px; letter-spacing: 2px; margin-bottom: 6px; }
+    .search-hero-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .search-big {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 50px; padding: 14px 24px;
+      max-width: 580px; margin: 0 auto; transition: all var(--t);
+    }
+    .search-big:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(229,9,20,0.12); }
+    .search-big input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-family: 'Outfit', sans-serif; font-size: 17px;
+    }
+    .search-big input::placeholder { color: var(--dim); }
+    .search-clear { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; transition: color var(--t); }
+    .search-clear:hover { color: var(--text); }
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty-icon { font-size: 60px; margin-bottom: 18px; }
+    .empty-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .empty-sub { font-size: 14px; }
+
+    /* ===== LOGIN ===== */
+    .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .login-poster-grid { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; opacity: 0.12; filter: blur(3px) saturate(0.5); transform: scale(1.08); }
+    .login-poster-grid img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .login-dim { position: absolute; inset: 0; background: rgba(8,8,14,0.88); }
+    .login-box {
+      position: relative; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r2); padding: 46px 40px; width: 100%; max-width: 420px;
+      backdrop-filter: blur(20px); animation: fadeUp 0.5s ease;
+    }
+    .login-logo { font-family: 'Bebas Neue', cursive; font-size: 38px; letter-spacing: 3px; text-align: center; margin-bottom: 6px; }
+    .login-logo span { color: var(--accent); }
+    .login-tagline { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+    .fld { margin-bottom: 18px; }
+    .fld label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 7px; }
+    .fld input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 11px 14px; color: var(--text);
+      font-family: 'Outfit', sans-serif; font-size: 14px; outline: none; transition: all var(--t);
+    }
+    .fld input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(229,9,20,0.12); }
+    .btn-login {
+      width: 100%; background: var(--accent); color: #fff; border: none;
+      border-radius: var(--r); padding: 13px; font-family: 'Outfit', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px; transition: all var(--t);
+    }
+    .btn-login:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(229,9,20,0.4); }
+    .switch-mode { text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted); }
+    .switch-mode a { color: var(--accent); cursor: pointer; }
+    .switch-mode a:hover { text-decoration: underline; }
+
+    /* ===== PROFILE ===== */
+    .profile-banner {
+      display: flex; align-items: center; gap: 24px;
+      padding: 28px 32px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r2); margin-bottom: 40px;
+    }
+    .p-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--accent); display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', cursive; font-size: 30px; flex-shrink: 0;
+    }
+    .p-name { font-family: 'Bebas Neue', cursive; font-size: 28px; letter-spacing: 1px; margin-bottom: 3px; }
+    .p-email { font-size: 13px; color: var(--muted); }
+    .p-stats { font-size: 12px; color: var(--dim); margin-top: 6px; }
+    .logout-btn {
+      margin-left: auto; padding: 9px 20px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); cursor: pointer; font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 500; transition: all var(--t);
+    }
+    .logout-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== FOOTER ===== */
+    footer { background: var(--surface); border-top: 1px solid var(--border); padding: 44px 60px 28px; margin-top: 60px; }
+    .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 36px; margin-bottom: 32px; }
+    .footer-logo { font-family: 'Bebas Neue', cursive; font-size: 26px; letter-spacing: 2px; margin-bottom: 6px; }
+    .footer-logo span { color: var(--accent); }
+    .footer-tagline { font-size: 13px; color: var(--muted); }
+    .footer-links { display: flex; gap: 52px; }
+    .fcol h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); margin-bottom: 14px; }
+    .fcol a { display: block; font-size: 13px; color: var(--muted); cursor: pointer; margin-bottom: 9px; transition: color var(--t); text-decoration: none; }
+    .fcol a:hover { color: var(--text); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 22px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .footer-bottom p { font-size: 12px; color: var(--dim); }
+
+    /* ===== TOAST ===== */
+    .toasts { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+    .toast {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 18px;
+      font-size: 13px; display: flex; align-items: center; gap: 9px;
+      backdrop-filter: blur(20px); animation: slideR 0.3s ease;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.4); min-width: 240px;
+    }
+    .toast.ok { border-left: 3px solid #22c55e; }
+    .toast.err { border-left: 3px solid var(--accent); }
+    .toast.info { border-left: 3px solid #3b82f6; }
+    .ti { font-size: 15px; }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideR { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+    .fade-in { animation: fadeUp 0.5s ease; }
+
+    /* ===== MISC ===== */
+    .divider { height: 1px; background: var(--border); margin: 8px 0 36px; }
+    .no-results { text-align: center; padding: 60px; color: var(--muted); }
+    .spacer { height: 80px; }
+
+    @media (max-width: 820px) {
+      .hero-content { padding: 0 24px; }
+      .movie-layout { flex-direction: column; padding: 0 20px 40px; gap: 24px; }
+      .big-poster { width: 150px; margin: 0 auto; }
+      .movie-info-col { padding-top: 16px; }
+      .trailer-section { padding: 0 20px 40px; }
+      .section { padding: 0 16px 28px; }
+      .navbar { padding: 0 16px; gap: 12px; }
+      .nav-search { display: none; }
+      .page-wrap { padding: 90px 16px 50px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="logo" onclick="go('home')">KINO<span>.</span>OK</div>
+  <ul class="nav-links">
+    <li><a id="nl-home" onclick="go('home')">Главная</a></li>
+    <li><a id="nl-catalog" onclick="go('catalog')">Каталог</a></li>
+    <li><a id="nl-search" onclick="go('search')">Поиск</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-search">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Найти фильм..." id="nb-search" oninput="navSearch(this.value)" autocomplete="off">
+    </div>
+    <button class="icon-btn" onclick="go('favorites')" title="Избранное" id="fav-icon">♡</button>
+    <div id="auth-area"></div>
+  </div>
+</nav>
+
+<!-- APP -->
+<div id="app"></div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  MOVIE DATA
+// ═══════════════════════════════════════════════════════
+const MOVIES = [
+  {
+    id:1, title:"Начало", orig:"Inception", year:2010,
+    genres:["Фантастика","Триллер","Боевик"], rating:8.8,
+    poster:"https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg",
+    back:"https://image.tmdb.org/t/p/original/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
+    desc:"Кобб — вор, способный проникать в сны людей и похищать их тайны. Ему предлагают уникальную задачу: не украсть идею, а внедрить её в разум человека.",
+    trailer:"YoHD9XEInc0", country:"США", dur:"148 мин", dir:"Кристофер Нолан",
+    trending:1, top:1, featured:1
+  },
+  {
+    id:2, title:"Тёмный рыцарь", orig:"The Dark Knight", year:2008,
+    genres:["Боевик","Триллер","Криминал"], rating:9.0,
+    poster:"https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+    back:"https://image.tmdb.org/t/p/original/hkBaDkMWbLaf8B1lsWsncoDy6pk.jpg",
+    desc:"Бэтмен поднимает ставки в войне с преступностью, когда Джокер — безумный преступный гений — начинает сеять хаос в Готэм-Сити.",
+    trailer:"EXeTwQWrcwY", country:"США", dur:"152 мин", dir:"Кристофер Нолан",
+    trending:1, top:1
+  },
+  {
+    id:3, title:"Интерстеллар", orig:"Interstellar", year:2014,
+    genres:["Фантастика","Драма","Приключения"], rating:8.6,
+    poster:"https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+    back:"https://image.tmdb.org/t/p/original/xJHokMbljvjADYdit5fK5VQsXEG.jpg",
+    desc:"Экспедиция астронавтов отправляется через червоточину в поисках пригодной для жизни планеты, чтобы спасти человечество от вымирания.",
+    trailer:"zSWdZVtXT7E", country:"США", dur:"169 мин", dir:"Кристофер Нолан",
+    top:1, scifi:1
+  },
+  {
+    id:4, title:"Матрица", orig:"The Matrix", year:1999,
+    genres:["Фантастика","Боевик"], rating:8.7,
+    poster:"https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+    back:"https://image.tmdb.org/t/p/original/l4QHerTSbMI7qgvasqxP36pqjN6.jpg",
+    desc:"Хакер Нео узнаёт, что мир — иллюзия, созданная машинами. Настоящая реальность скрыта от людей, ставших батарейками для искусственного интеллекта.",
+    trailer:"vKQi3bBA1y8", country:"США", dur:"136 мин", dir:"Лана Вачовски",
+    top:1, scifi:1
+  },
+  {
+    id:5, title:"Криминальное чтиво", orig:"Pulp Fiction", year:1994,
+    genres:["Криминал","Драма","Комедия"], rating:8.9,
+    poster:"https://image.tmdb.org/t/p/w500/fIE3lAGcZDV1G6XM5KmuWnNtSxQ.jpg",
+    back:"https://image.tmdb.org/t/p/original/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
+    desc:"Три переплетённые истории о гангстерах, мелких преступниках и случайных людях в преступном мире Лос-Анджелеса.",
+    trailer:"s7EdQ4FqbhY", country:"США", dur:"154 мин", dir:"Квентин Тарантино",
+    top:1, drama:1
+  },
+  {
+    id:6, title:"Бойцовский клуб", orig:"Fight Club", year:1999,
+    genres:["Триллер","Драма"], rating:8.8,
+    poster:"https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+    back:"https://image.tmdb.org/t/p/original/87hTDiay2N2qWyX4Ds7ybXi9h8I.jpg",
+    desc:"Офисный работник создаёт подпольный бойцовский клуб вместе с харизматичным мыловаром. Клуб постепенно перерастает в нечто совершенно иное.",
+    trailer:"qtRKdVHc-cE", country:"США", dur:"139 мин", dir:"Дэвид Финчер",
+    top:1, drama:1
+  },
+  {
+    id:7, title:"Побег из Шоушенка", orig:"The Shawshank Redemption", year:1994,
+    genres:["Драма"], rating:9.3,
+    poster:"https://image.tmdb.org/t/p/w500/lyQBXzOQSuE59IsHyhrp0qIiPAz.jpg",
+    back:"https://image.tmdb.org/t/p/original/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg",
+    desc:"Банкир Энди Дюфрейн осуждён за убийство. В тюрьме Шоушенк он сближается с заключённым Редом и доказывает, что надежду нельзя заключить за решётку.",
+    trailer:"6hB3S9bIaco", country:"США", dur:"142 мин", dir:"Фрэнк Дарабонт",
+    top:1, drama:1
+  },
+  {
+    id:8, title:"Форрест Гамп", orig:"Forrest Gump", year:1994,
+    genres:["Драма","Комедия","Мелодрама"], rating:8.8,
+    poster:"https://image.tmdb.org/t/p/w500/saHP97rTPS5eLmrLQEcANmKrsFl.jpg",
+    back:"https://image.tmdb.org/t/p/original/qdIMHd4sEoAOMBh0sXw6YEfHGEz.jpg",
+    desc:"История необычного человека, который невольно оказывается причастен ко всем ключевым событиям американской истории второй половины XX века.",
+    trailer:"bLvqoHBptjg", country:"США", dur:"142 мин", dir:"Роберт Земекис",
+    top:1, drama:1
+  },
+  {
+    id:9, title:"Крёстный отец", orig:"The Godfather", year:1972,
+    genres:["Криминал","Драма"], rating:9.2,
+    poster:"https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsLegHnDmfw2.jpg",
+    back:"https://image.tmdb.org/t/p/original/tmU7GeKVPlhBKqjeCCaRlnfVHoN.jpg",
+    desc:"Дон Вито Корлеоне передаёт бизнес сыну Майклу. Семейные войны и предательства угрожают разрушить мафиозную империю Корлеоне.",
+    trailer:"sY1S34973zA", country:"США", dur:"175 мин", dir:"Фрэнсис Форд Коппола",
+    top:1, drama:1
+  },
+  {
+    id:10, title:"Гладиатор", orig:"Gladiator", year:2000,
+    genres:["Боевик","Драма","Приключения"], rating:8.5,
+    poster:"https://image.tmdb.org/t/p/w500/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg",
+    back:"https://image.tmdb.org/t/p/original/6WBIzCgmDCYrqh64yDREGeDk9d3.jpg",
+    desc:"Римский полководец Максимус становится рабом и гладиатором после предательства. Его единственная цель — месть злодею, убившему его семью.",
+    trailer:"owK1qxDselE", country:"США", dur:"155 мин", dir:"Ридли Скотт",
+    trending:1, action:1
+  },
+  {
+    id:11, title:"Дюна", orig:"Dune", year:2021,
+    genres:["Фантастика","Приключения","Драма"], rating:8.0,
+    poster:"https://image.tmdb.org/t/p/w500/d5NXSklpcvksHQZ4o7MEG9VGFo.jpg",
+    back:"https://image.tmdb.org/t/p/original/jYEW5xZkZk2WTrdbMGAPFuBqbDc.jpg",
+    desc:"Юный Пол Атрейдес прибывает на пустынную планету Арракис — единственный источник ценнейшей в галактике субстанции.",
+    trailer:"8g18jFHCLXk", country:"США", dur:"155 мин", dir:"Дени Вильнёв",
+    trending:1, scifi:1
+  },
+  {
+    id:12, title:"Оппенгеймер", orig:"Oppenheimer", year:2023,
+    genres:["Биография","Драма","История"], rating:8.3,
+    poster:"https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+    back:"https://image.tmdb.org/t/p/original/rLb2cwF3Pazuxaj0sRXQ037tGI1.jpg",
+    desc:"История создателя атомной бомбы Роберта Оппенгеймера — триумф науки и невыносимая тяжесть моральной ответственности за судьбу человечества.",
+    trailer:"uYPbbksJxIg", country:"США", dur:"180 мин", dir:"Кристофер Нолан",
+    trending:1, fresh:1, drama:1
+  },
+  {
+    id:13, title:"Топ Ган: Мэверик", orig:"Top Gun: Maverick", year:2022,
+    genres:["Боевик","Драма"], rating:8.3,
+    poster:"https://image.tmdb.org/t/p/w500/62HCnUTziyWcpDaBO2i1DX17ljH.jpg",
+    back:"https://image.tmdb.org/t/p/original/odJ4hx6g6vBt4lBWKFD1tI8WS4x.jpg",
+    desc:"Мэверик возвращается тренировать новых лётчиков для секретной миссии. Среди курсантов — сын его погибшего лучшего друга.",
+    trailer:"qSqVVswa420", country:"США", dur:"130 мин", dir:"Джозеф Косински",
+    trending:1, fresh:1, action:1
+  },
+  {
+    id:14, title:"Человек-паук: Нет пути домой", orig:"Spider-Man: No Way Home", year:2021,
+    genres:["Боевик","Фантастика","Приключения"], rating:8.2,
+    poster:"https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
+    back:"https://image.tmdb.org/t/p/original/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg",
+    desc:"Питер Паркер просит Доктора Стрэнджа сотворить заклинание забвения, но что-то идёт не так — и мультивселенная начинает рушиться.",
+    trailer:"JfVOs4VSpmA", country:"США", dur:"148 мин", dir:"Джон Уоттс",
+    trending:1, action:1
+  },
+  {
+    id:15, title:"Бэтмен", orig:"The Batman", year:2022,
+    genres:["Боевик","Криминал","Триллер"], rating:7.8,
+    poster:"https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+    back:"https://image.tmdb.org/t/p/original/b0PlSFdDwbyK0cf5RxwDpaOJQvQ.jpg",
+    desc:"Второй год Бэтмена. Загадочный убийца оставляет зашифрованные послания, втягивая Брюса Уэйна в расследование тайн самого Готэма.",
+    trailer:"mqqft2x_Aa4", country:"США", dur:"176 мин", dir:"Мэтт Ривз",
+    fresh:1, action:1
+  },
+  {
+    id:16, title:"Барби", orig:"Barbie", year:2023,
+    genres:["Комедия","Фэнтези","Приключения"], rating:6.9,
+    poster:"https://image.tmdb.org/t/p/w500/iuFNMS8vlbZxOkIGEV7HDBnOKly.jpg",
+    back:"https://image.tmdb.org/t/p/original/nHf61UzkfFno5X1ofIhugCPus2R.jpg",
+    desc:"Идеальная Барби начинает думать о смерти и отправляется из Барбиленда в реальный мир. Кен едет следом.",
+    trailer:"pBk4NYhWNMM", country:"США", dur:"114 мин", dir:"Грета Гервиг",
+    trending:1, fresh:1, comedy:1
+  },
+  {
+    id:17, title:"Джон Уик 4", orig:"John Wick: Chapter 4", year:2023,
+    genres:["Боевик","Триллер"], rating:7.7,
+    poster:"https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg",
+    back:"https://image.tmdb.org/t/p/original/xVMtv55caCEvBaGXOkWbuNBsyhW.jpg",
+    desc:"Джон Уик разыскивает способ разорвать контракт с Высокой Таблицей, путешествуя по всему миру среди старых союзников и новых врагов.",
+    trailer:"qEVUtrk8_B4", country:"США", dur:"169 мин", dir:"Чад Стахелски",
+    trending:1, fresh:1, action:1
+  },
+  {
+    id:18, title:"Мстители: Финал", orig:"Avengers: Endgame", year:2019,
+    genres:["Боевик","Фантастика","Приключения"], rating:8.4,
+    poster:"https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+    back:"https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg",
+    desc:"Оставшиеся Мстители отправляются в путешествие во времени, чтобы победить Таноса и вернуть половину всей жизни во вселенной.",
+    trailer:"TcMBFSGVi1c", country:"США", dur:"181 мин", dir:"Братья Руссо",
+    top:1, action:1
+  },
+  {
+    id:19, title:"Аватар", orig:"Avatar", year:2009,
+    genres:["Фантастика","Приключения","Боевик"], rating:7.8,
+    poster:"https://image.tmdb.org/t/p/w500/jRXYjXNq0Cs2TcJjLkki24MLp7u.jpg",
+    back:"https://image.tmdb.org/t/p/original/Yc9q6QuWrMp9nuDm5R8ExNqbEqU.jpg",
+    desc:"Парализованный морпех управляет телом инопланетянина на далёкой Пандоре, где неожиданно встаёт на сторону аборигенов против людей-захватчиков.",
+    trailer:"5PSNL1qE6VY", country:"США", dur:"162 мин", dir:"Джеймс Кэмерон",
+    scifi:1
+  },
+  {
+    id:20, title:"Титаник", orig:"Titanic", year:1997,
+    genres:["Мелодрама","Драма","История"], rating:7.9,
+    poster:"https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg",
+    back:"https://image.tmdb.org/t/p/original/wd5nQkMjCuqiPAOvQyiUJCQEOb1.jpg",
+    desc:"Молодой художник влюбляется в девушку из высшего общества на борту крупнейшего корабля в истории во время его трагического первого рейса.",
+    trailer:"kVrqfYjkTdQ", country:"США", dur:"195 мин", dir:"Джеймс Кэмерон",
+    top:1, drama:1
+  },
+  {
+    id:21, title:"Всё везде и сразу", orig:"Everything Everywhere All at Once", year:2022,
+    genres:["Фантастика","Комедия","Боевик"], rating:7.8,
+    poster:"https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg",
+    back:"https://image.tmdb.org/t/p/original/tQvuh5oHsPOIhJklkbqz8Xl6kHt.jpg",
+    desc:"Хозяйка прачечной получает способность проживать жизни из параллельных вселенных и должна спасти реальность, сражаясь с нигилистической силой.",
+    trailer:"wxN1T1uxQ2g", country:"США", dur:"139 мин", dir:"Дэниэл Кван, Дэниэл Шайнерт",
+    fresh:1, comedy:1
+  },
+  {
+    id:22, title:"Дюна: Часть вторая", orig:"Dune: Part Two", year:2024,
+    genres:["Фантастика","Приключения","Боевик"], rating:8.5,
+    poster:"https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+    back:"https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+    desc:"Пол Атрейдес объединяется с Чани и фрименами против дома Харконненов. Пророчество о мессии набирает силу.",
+    trailer:"Way9Dexny3w", country:"США", dur:"166 мин", dir:"Дени Вильнёв",
+    trending:1, fresh:1, scifi:1
+  },
+  {
+    id:23, title:"Волк с Уолл-стрит", orig:"The Wolf of Wall Street", year:2013,
+    genres:["Биография","Криминал","Комедия"], rating:8.2,
+    poster:"https://image.tmdb.org/t/p/w500/certXpAYHpBB7adKz7rZDNe5iBg.jpg",
+    back:"https://image.tmdb.org/t/p/original/lEqFMoBHCBCc3Thq3kXqTFl2rrX.jpg",
+    desc:"Восхождение и падение Джордана Белфорта — биржевого брокера, чья жизнь превратилась в нескончаемую оргию денег, наркотиков и мошенничества.",
+    trailer:"iszwuX1AK6A", country:"США", dur:"180 мин", dir:"Мартин Скорсезе",
+    top:1, comedy:1
+  },
+  {
+    id:24, title:"Паразиты", orig:"Parasite", year:2019,
+    genres:["Драма","Триллер","Комедия"], rating:8.5,
+    poster:"https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+    back:"https://image.tmdb.org/t/p/original/TU9NIjwzjoKPwQHoHshkFcQUCG.jpg",
+    desc:"Бедная корейская семья проникает в жизнь богатой семьи, постепенно занимая в ней всё больше места. История о классовом неравенстве.",
+    trailer:"isOGD_7hNIY", country:"Корея", dur:"132 мин", dir:"Пон Чжун Хо",
+    top:1, drama:1
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+const S = {
+  page: 'home',
+  movie: null,
+  prevPage: 'home',
+  prevMovie: null,
+  q: '',
+  genre: 'Все',
+  favs: JSON.parse(localStorage.getItem('kino_ok_favs') || '[]'),
+  history: JSON.parse(localStorage.getItem('kino_ok_hist') || '[]'),
+  user: JSON.parse(localStorage.getItem('kino_ok_user') || 'null'),
+  loginTab: 'login'
+};
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function go(page, movieId) {
+  S.prevPage = S.page;
+  S.prevMovie = S.movie;
+  S.page = page;
+  S.movie = movieId ? MOVIES.find(m => m.id === movieId) : null;
+  renderApp();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  syncNavLinks();
+  syncAuthArea();
+}
+
+function goBack() {
+  if (S.prevMovie) {
+    go(S.prevPage, S.prevMovie.id);
+  } else {
+    go(S.prevPage || 'home');
+  }
+}
+
+function syncNavLinks() {
+  ['home','catalog','search'].forEach(p => {
+    const el = document.getElementById('nl-' + p);
+    if (el) el.classList.toggle('active', S.page === p);
+  });
+  const favIcon = document.getElementById('fav-icon');
+  if (favIcon) favIcon.textContent = S.favs.length > 0 ? '♥' : '♡';
+}
+
+function syncAuthArea() {
+  const el = document.getElementById('auth-area');
+  if (!el) return;
+  if (S.user) {
+    el.innerHTML = `<div class="user-chip" onclick="go('profile')">
+      <div class="user-avatar">${S.user.name[0].toUpperCase()}</div>
+      <span>${S.user.name}</span>
+    </div>`;
+  } else {
+    el.innerHTML = `<button class="btn-red" onclick="go('login')" style="padding:7px 18px;font-size:13px;">Войти</button>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  FAVORITES
+// ═══════════════════════════════════════════════════════
+function toggleFav(id, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  const i = S.favs.indexOf(id);
+  if (i === -1) { S.favs.push(id); toast('Добавлено в избранное', 'ok', '♥'); }
+  else { S.favs.splice(i, 1); toast('Удалено из избранного', 'err', '♡'); }
+  localStorage.setItem('kino_ok_favs', JSON.stringify(S.favs));
+  // update all heart buttons without full re-render
+  document.querySelectorAll('.heart-btn').forEach(b => {
+    const mid = parseInt(b.dataset.id);
+    const isFav = S.favs.includes(mid);
+    b.classList.toggle('on', isFav);
+    b.textContent = isFav ? '♥' : '♡';
+  });
+  const favIcon = document.getElementById('fav-icon');
+  if (favIcon) favIcon.textContent = S.favs.length > 0 ? '♥' : '♡';
+  if (S.page === 'favorites') renderApp();
+}
+const isFav = id => S.favs.includes(id);
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+function toast(msg, type = 'ok', icon = '✓') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="ti">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVBAR SCROLL
+// ═══════════════════════════════════════════════════════
+let _scrollHandler = null;
+function setupNavScroll() {
+  const nb = document.getElementById('navbar');
+  if (!nb) return;
+  if (_scrollHandler) window.removeEventListener('scroll', _scrollHandler);
+  _scrollHandler = () => nb.classList.toggle('scrolled', window.scrollY > 60);
+  window.addEventListener('scroll', _scrollHandler, { passive: true });
+  _scrollHandler();
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVBAR SEARCH
+// ═══════════════════════════════════════════════════════
+function navSearch(v) {
+  if (!v.trim()) return;
+  S.q = v.trim();
+  S.page = 'search';
+  S.movie = null;
+  renderApp();
+  syncNavLinks();
+}
+
+// ═══════════════════════════════════════════════════════
+//  ROW SCROLL
+// ═══════════════════════════════════════════════════════
+function scrollRow(id, d) {
+  const el = document.getElementById('r-' + id);
+  if (el) el.scrollBy({ left: d * 580, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER APP
+// ═══════════════════════════════════════════════════════
+function renderApp() {
+  const app = document.getElementById('app');
+  const nb = document.getElementById('navbar');
+
+  // Navbar visibility
+  if (nb) nb.style.display = S.page === 'watch' ? 'none' : 'flex';
+
+  switch(S.page) {
+    case 'home':      app.innerHTML = renderHome(); break;
+    case 'catalog':   app.innerHTML = renderCatalog(); break;
+    case 'movie':     app.innerHTML = renderMoviePage(); break;
+    case 'watch':     app.innerHTML = renderWatchPage(); break;
+    case 'search':    app.innerHTML = renderSearchPage(); break;
+    case 'login':     app.innerHTML = renderLoginPage(); break;
+    case 'profile':   app.innerHTML = S.user ? renderProfile() : renderLoginPage(); break;
+    case 'favorites': app.innerHTML = renderFavoritesPage(); break;
+    default:          app.innerHTML = renderHome();
+  }
+  setupNavScroll();
+}
+
+// ═══════════════════════════════════════════════════════
+//  HOME
+// ═══════════════════════════════════════════════════════
+function renderHome() {
+  const f = MOVIES.find(m => m.featured) || MOVIES[0];
+  const trending = MOVIES.filter(m => m.trending);
+  const top = MOVIES.filter(m => m.top);
+  const fresh = MOVIES.filter(m => m.fresh);
+  const scifi = MOVIES.filter(m => m.scifi);
+  const drama = MOVIES.filter(m => m.drama);
+  const comedy = MOVIES.filter(m => m.comedy);
+  const action = MOVIES.filter(m => m.action);
+
+  return `
+    <div class="hero">
+      <div class="hero-bg" style="background-image:url('${f.back}')"></div>
+      <div class="hero-vignette"></div>
+      <div class="hero-content">
+        <div class="hero-badge">В эфире сейчас</div>
+        <div class="hero-title">${f.title}</div>
+        <div class="hero-meta">
+          <span class="rnk">★ ${f.rating}</span>
+          <span class="dot-sep"></span>
+          <span>${f.year}</span>
+          <span class="dot-sep"></span>
+          <span>${f.dur}</span>
+          <span class="dot-sep"></span>
+          <span>${f.genres.join(' · ')}</span>
+        </div>
+        <div class="hero-desc">${f.desc}</div>
+        <div class="hero-btns">
+          <button class="btn-red" onclick="go('watch',${f.id})">▶ Смотреть</button>
+          <button class="btn-ghost" onclick="go('movie',${f.id})">ℹ Подробнее</button>
+        </div>
+      </div>
+    </div>
+    <div style="position:relative;z-index:1;margin-top:-48px;">
+      ${renderRow('🔥 В тренде', trending, 'tr')}
+      ${renderRow('⭐ Топ рейтинга', top, 'tp')}
+      ${fresh.length ? renderRow('🆕 Новинки', fresh, 'fr') : ''}
+      ${scifi.length ? renderRow('🚀 Фантастика', scifi, 'sf') : ''}
+      ${drama.length ? renderRow('🎭 Драмы', drama, 'dr') : ''}
+      ${comedy.length ? renderRow('😂 Комедии', comedy, 'co') : ''}
+      ${action.length ? renderRow('💥 Боевики', action, 'ac') : ''}
+    </div>
+    ${renderFooter()}
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ROW
+// ═══════════════════════════════════════════════════════
+function renderRow(label, movies, rowId) {
+  if (!movies.length) return '';
+  return `
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title"><div class="red-dot"></div>${label}</div>
+        <a class="see-all" onclick="go('catalog')">Смотреть все →</a>
+      </div>
+      <div class="row-wrap">
+        <button class="row-arrow lft" onclick="scrollRow('${rowId}',-1)">‹</button>
+        <div class="row-scroll" id="r-${rowId}">
+          ${movies.map(m => renderCard(m)).join('')}
+        </div>
+        <button class="row-arrow rgt" onclick="scrollRow('${rowId}',1)">›</button>
+      </div>
+    </section>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CARD
+// ═══════════════════════════════════════════════════════
+function renderCard(m) {
+  const fav = isFav(m.id);
+  return `
+    <div class="card" onclick="go('movie',${m.id})">
+      <div class="card-img">
+        <img src="${m.poster}" alt="${m.title}" loading="lazy" onerror="this.src='https://placehold.co/158x237/1a1a28/7878a0?text=${encodeURIComponent(m.title.slice(0,8))}'">
+        <div class="card-hover-layer">
+          <div class="card-play-btn" onclick="event.stopPropagation();go('watch',${m.id})">▶</div>
+          <div class="card-hover-rating">★ ${m.rating}</div>
+        </div>
+        <button class="heart-btn ${fav?'on':''}" data-id="${m.id}" onclick="toggleFav(${m.id},event)">${fav?'♥':'♡'}</button>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${m.title}</div>
+        <div class="card-sub"><span class="gold-star">★</span>${m.rating} <span style="color:var(--dim)">•</span> ${m.year}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CATALOG
+// ═══════════════════════════════════════════════════════
+function renderCatalog() {
+  const allGenres = ['Все', ...new Set(MOVIES.flatMap(m => m.genres))];
+  const filtered = S.genre === 'Все' ? MOVIES : MOVIES.filter(m => m.genres.includes(S.genre));
+  return `
+    <div class="page-wrap fade-in">
+      <div class="page-title">🎬 Каталог фильмов</div>
+      <div class="chips">
+        ${allGenres.map(g=>`<button class="chip ${S.genre===g?'on':''}" onclick="setGenre('${g}')">${g}</button>`).join('')}
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Найдено фильмов: <b style="color:var(--text)">${filtered.length}</b></div>
+      <div class="grid">${filtered.map(m=>renderCard(m)).join('')}</div>
+    </div>
+    ${renderFooter()}
+  `;
+}
+function setGenre(g) { S.genre = g; renderApp(); }
+
+// ═══════════════════════════════════════════════════════
+//  MOVIE DETAIL
+// ═══════════════════════════════════════════════════════
+function renderMoviePage() {
+  const m = S.movie;
+  if (!m) return '<div class="page-wrap"><p>Фильм не найден</p></div>';
+  const fav = isFav(m.id);
+  const similar = MOVIES.filter(f => f.id !== m.id && f.genres.some(g => m.genres.includes(g))).slice(0, 8);
+  return `
+    <div class="fade-in">
+      <button class="back-btn" onclick="goBack()">← Назад</button>
+      <div class="backdrop-wrap">
+        <img class="backdrop-img" src="${m.back}" alt="${m.title}" onerror="this.src='https://placehold.co/1920x800/10101a/404060?text=.'">
+        <div class="backdrop-fade"></div>
+      </div>
+      <div class="movie-layout">
+        <div class="big-poster">
+          <img src="${m.poster}" alt="${m.title}" onerror="this.src='https://placehold.co/230x345/1a1a28/7878a0?text=${encodeURIComponent(m.title.slice(0,8))}'">
+        </div>
+        <div class="movie-info-col">
+          <div class="genre-pills">${m.genres.map(g=>`<span class="gpill">${g}</span>`).join('')}</div>
+          <div class="movie-main-title">${m.title}</div>
+          <div class="movie-orig">${m.orig} · ${m.year}</div>
+          <div class="stats-row">
+            <div class="stat"><span class="stat-lbl">Рейтинг</span><span class="stat-val gold">★ ${m.rating}</span></div>
+            <div class="stat"><span class="stat-lbl">Год</span><span class="stat-val">${m.year}</span></div>
+            <div class="stat"><span class="stat-lbl">Длина</span><span class="stat-val">${m.dur}</span></div>
+            <div class="stat"><span class="stat-lbl">Страна</span><span class="stat-val">${m.country}</span></div>
+            <div class="stat"><span class="stat-lbl">Режиссёр</span><span class="stat-val">${m.dir}</span></div>
+          </div>
+          <div class="movie-desc">${m.desc}</div>
+          <div class="movie-btns">
+            <button class="btn-red" onclick="go('watch',${m.id})">▶ Смотреть трейлер</button>
+            <button class="btn-ghost" id="fav-movie-btn" onclick="toggleFavMovie(${m.id})" style="${fav?'border-color:var(--accent);color:var(--accent)':''}">
+              ${fav ? '♥ В избранном' : '♡ В избранное'}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="trailer-section">
+        <div class="trailer-title"><div class="red-dot"></div>Официальный трейлер</div>
+        <div class="player-wrap">
+          <iframe src="https://www.youtube.com/embed/${m.trailer}?rel=0&modestbranding=1" title="${m.title}" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"></iframe>
+        </div>
+      </div>
+      ${similar.length ? `
+        <div style="padding:0 16px;">${renderRow('Похожие фильмы', similar, 'sim')}</div>
+      ` : ''}
+      ${renderFooter()}
+    </div>
+  `;
+}
+
+function toggleFavMovie(id) {
+  toggleFav(id, null);
+  const btn = document.getElementById('fav-movie-btn');
+  if (btn) {
+    const fav = isFav(id);
+    btn.textContent = fav ? '♥ В избранном' : '♡ В избранное';
+    btn.style.borderColor = fav ? 'var(--accent)' : '';
+    btn.style.color = fav ? 'var(--accent)' : '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  WATCH PAGE
+// ═══════════════════════════════════════════════════════
+function renderWatchPage() {
+  const m = S.movie;
+  if (!m) return '<div class="page-wrap"><p>Фильм не найден</p></div>';
+  // Add to history
+  if (!S.history.includes(m.id)) {
+    S.history.unshift(m.id);
+    if (S.history.length > 20) S.history.pop();
+    localStorage.setItem('kino_ok_hist', JSON.stringify(S.history));
+  }
+  return `
+    <div class="watch-page">
+      <div class="watch-bar">
+        <div class="watch-logo" onclick="go('home')">KINO<span>.</span>OK</div>
+        <div style="width:1px;height:22px;background:var(--border)"></div>
+        <div class="watch-movie-title">${m.title}</div>
+        <div style="margin-left:auto;display:flex;gap:10px;">
+          <button class="btn-ghost" onclick="go('movie',${m.id})" style="padding:7px 16px;font-size:13px;">← К фильму</button>
+        </div>
+      </div>
+      <div class="watch-frame">
+        <div class="watch-player">
+          <div class="watch-player-inner">
+            <iframe src="https://www.youtube.com/embed/${m.trailer}?autoplay=1&rel=0&modestbranding=1&controls=1" title="${m.title}" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share"></iframe>
+          </div>
+        </div>
+        <div class="watch-meta">
+          <div>
+            <div class="watch-info-title">${m.title}</div>
+            <div class="watch-info-sub">${m.orig} · ${m.genres.join(' · ')} · ${m.year} · ${m.dur} · Режиссёр: ${m.dir}</div>
+          </div>
+          <div class="watch-actions">
+            <button class="btn-ghost" onclick="toggleFav(${m.id},event)" style="padding:9px 18px;font-size:13px;">${isFav(m.id)?'♥ В избранном':'♡ В избранное'}</button>
+            <button class="btn-red" onclick="go('catalog')" style="padding:9px 18px;font-size:13px;">Все фильмы</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  SEARCH
+// ═══════════════════════════════════════════════════════
+function renderSearchPage() {
+  const results = getSearchResults(S.q);
+  return `
+    <div class="page-wrap fade-in">
+      <div class="search-hero-area">
+        <div class="search-hero-title">🔍 Поиск</div>
+        <div class="search-hero-sub">Название фильма, жанр или режиссёр</div>
+        <div class="search-big">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Начните вводить…" value="${S.q}" oninput="liveSearch(this.value)" id="main-q" autofocus>
+          ${S.q ? `<button class="search-clear" onclick="clearSearch()">✕</button>` : ''}
+        </div>
+      </div>
+      <div id="s-results">${renderSearchResults(S.q, results)}</div>
+    </div>
+    ${renderFooter()}
+  `;
+}
+
+function getSearchResults(q) {
+  if (!q) return [];
+  const lq = q.toLowerCase();
+  return MOVIES.filter(m =>
+    m.title.toLowerCase().includes(lq) ||
+    m.orig.toLowerCase().includes(lq) ||
+    m.genres.some(g => g.toLowerCase().includes(lq)) ||
+    m.dir.toLowerCase().includes(lq)
+  );
+}
+
+function renderSearchResults(q, results) {
+  if (!q) return `<div class="empty-state"><div class="empty-icon">🎬</div><div class="empty-title">Введите название фильма</div><div class="empty-sub">Поиск по названию, жанру или режиссёру</div></div>`;
+  if (!results.length) return `<div class="empty-state"><div class="empty-icon">😕</div><div class="empty-title">Ничего не найдено</div><div class="empty-sub">Попробуйте другой запрос</div></div>`;
+  return `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">
+      По запросу «${q}» найдено: <b style="color:var(--text)">${results.length}</b>
+    </div>
+    <div class="grid">${results.map(m => renderCard(m)).join('')}</div>
+  `;
+}
+
+function liveSearch(v) {
+  S.q = v;
+  const results = getSearchResults(v);
+  const container = document.getElementById('s-results');
+  if (container) container.innerHTML = renderSearchResults(v, results);
+  // update clear button
+  const input = document.getElementById('main-q');
+  if (!input) return;
+  const existing = input.parentElement.querySelector('.search-clear');
+  if (v && !existing) {
+    const btn = document.createElement('button');
+    btn.className = 'search-clear'; btn.textContent = '✕';
+    btn.onclick = clearSearch;
+    input.parentElement.appendChild(btn);
+  } else if (!v && existing) existing.remove();
+}
+
+function clearSearch() {
+  S.q = '';
+  const input = document.getElementById('main-q');
+  if (input) { input.value = ''; input.focus(); }
+  liveSearch('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOGIN / REGISTER
+// ═══════════════════════════════════════════════════════
+function renderLoginPage() {
+  const isLogin = S.loginTab === 'login';
+  const posters = MOVIES.slice(0, 12).map(m => `<img src="${m.poster}" alt="" onerror="this.style.opacity=0">`).join('');
+  return `
+    <div class="login-page">
+      <div class="login-poster-grid">${posters}</div>
+      <div class="login-dim"></div>
+      <div class="login-box">
+        <div class="login-logo">KINO<span>.</span>OK</div>
+        <div class="login-tagline">${isLogin ? 'Войдите для полного доступа' : 'Создайте аккаунт бесплатно'}</div>
+        ${!isLogin ? `<div class="fld"><label>Имя</label><input id="rn" type="text" placeholder="Ваше имя"></div>` : ''}
+        <div class="fld"><label>Email</label><input id="em" type="email" placeholder="email@example.com" onkeydown="if(event.key==='Enter')${isLogin?'doLogin()':'doRegister()'}"></div>
+        <div class="fld"><label>Пароль</label><input id="pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')${isLogin?'doLogin()':'doRegister()'}"></div>
+        <button class="btn-login" onclick="${isLogin?'doLogin()':'doRegister()'}">${isLogin?'Войти':'Зарегистрироваться'}</button>
+        <div class="switch-mode">${isLogin ? `Нет аккаунта? <a onclick="S.loginTab='register';renderApp()">Зарегистрироваться</a>` : `Уже есть аккаунт? <a onclick="S.loginTab='login';renderApp()">Войти</a>`}</div>
+      </div>
+    </div>
+  `;
+}
+
+function doLogin() {
+  const em = document.getElementById('em')?.value?.trim();
+  const pw = document.getElementById('pw')?.value;
+  if (!em || !pw) { toast('Заполните все поля', 'err', '⚠'); return; }
+  if (pw.length < 4) { toast('Пароль слишком короткий', 'err', '⚠'); return; }
+  const user = { name: em.split('@')[0], email: em };
+  S.user = user;
+  localStorage.setItem('kino_ok_user', JSON.stringify(user));
+  toast('Добро пожаловать, ' + user.name + '! 🎬', 'ok', '✓');
+  go('home');
+}
+
+function doRegister() {
+  const rn = document.getElementById('rn')?.value?.trim();
+  const em = document.getElementById('em')?.value?.trim();
+  const pw = document.getElementById('pw')?.value;
+  if (!rn || !em || !pw) { toast('Заполните все поля', 'err', '⚠'); return; }
+  if (pw.length < 4) { toast('Пароль слишком короткий (мин. 4 символа)', 'err', '⚠'); return; }
+  const user = { name: rn, email: em };
+  S.user = user;
+  localStorage.setItem('kino_ok_user', JSON.stringify(user));
+  toast('Аккаунт создан! Добро пожаловать 🎉', 'ok', '✓');
+  go('home');
+}
+
+function doLogout() {
+  S.user = null;
+  localStorage.removeItem('kino_ok_user');
+  toast('До свидания!', 'info', '👋');
+  go('home');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════════════
+function renderProfile() {
+  const u = S.user;
+  const favMovies = MOVIES.filter(m => S.favs.includes(m.id));
+  const histMovies = S.history.map(id => MOVIES.find(m => m.id === id)).filter(Boolean);
+  return `
+    <div class="page-wrap fade-in">
+      <div class="profile-banner">
+        <div class="p-avatar">${u.name[0].toUpperCase()}</div>
+        <div>
+          <div class="p-name">${u.name}</div>
+          <div class="p-email">${u.email}</div>
+          <div class="p-stats">${favMovies.length} в избранном · ${histMovies.length} просмотров</div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Выйти →</button>
+      </div>
+
+      <div class="section-title" style="font-size:20px;margin-bottom:20px;"><div class="red-dot"></div>Избранное</div>
+      ${favMovies.length
+        ? `<div class="grid" style="margin-bottom:48px;">${favMovies.map(m=>renderCard(m)).join('')}</div>`
+        : `<div style="padding:32px 0;color:var(--muted);font-size:14px;margin-bottom:48px;">Ещё ничего не добавлено. Нажимайте ♡ на карточках фильмов.</div>`
+      }
+
+      <div class="section-title" style="font-size:20px;margin-bottom:20px;"><div class="red-dot"></div>История просмотров</div>
+      ${histMovies.length
+        ? `<div class="grid">${histMovies.map(m=>renderCard(m)).join('')}</div>`
+        : `<div style="padding:32px 0;color:var(--muted);font-size:14px;">Вы ещё ничего не смотрели.</div>`
+      }
+    </div>
+    ${renderFooter()}
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  FAVORITES PAGE
+// ═══════════════════════════════════════════════════════
+function renderFavoritesPage() {
+  const favMovies = MOVIES.filter(m => S.favs.includes(m.id));
+  return `
+    <div class="page-wrap fade-in">
+      <div class="page-title">♥ Избранное</div>
+      ${favMovies.length
+        ? `<div class="grid">${favMovies.map(m=>renderCard(m)).join('')}</div>`
+        : `<div class="empty-state">
+            <div class="empty-icon">🎬</div>
+            <div class="empty-title">Список пуст</div>
+            <div class="empty-sub" style="margin-bottom:24px;">Добавляйте фильмы, нажимая на ♡</div>
+            <button class="btn-red" onclick="go('catalog')">Перейти в каталог</button>
+          </div>`
+      }
+    </div>
+    ${renderFooter()}
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  FOOTER
+// ═══════════════════════════════════════════════════════
+function renderFooter() {
+  return `
+    <footer>
+      <div class="footer-top">
+        <div>
+          <div class="footer-logo">KINO<span>.</span>OK</div>
+          <div class="footer-tagline">Смотри лучшее кино онлайн</div>
+        </div>
+        <div class="footer-links">
+          <div class="fcol">
+            <h4>Навигация</h4>
+            <a onclick="go('home')">Главная</a>
+            <a onclick="go('catalog')">Каталог</a>
+            <a onclick="go('search')">Поиск</a>
+            <a onclick="go('favorites')">Избранное</a>
+          </div>
+          <div class="fcol">
+            <h4>Жанры</h4>
+            <a onclick="S.genre='Фантастика';go('catalog')">Фантастика</a>
+            <a onclick="S.genre='Драма';go('catalog')">Драмы</a>
+            <a onclick="S.genre='Боевик';go('catalog')">Боевики</a>
+            <a onclick="S.genre='Комедия';go('catalog')">Комедии</a>
+            <a onclick="S.genre='Триллер';go('catalog')">Триллеры</a>
+          </div>
+          <div class="fcol">
+            <h4>Аккаунт</h4>
+            <a onclick="go('profile')">Профиль</a>
+            <a onclick="go('login')">Войти / Регистрация</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 KINO.OK — Учебный проект</p>
+        <p>Все трейлеры принадлежат их правообладателям</p>
+      </div>
+    </footer>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+syncAuthArea();
+renderApp();
+</script>
+</body>
+</html>
